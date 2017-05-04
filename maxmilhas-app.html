@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <title></title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.2.1.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+  </head>
+  <body>
+
+    <div class="container">
+
+    <div class="jumbotron">
+      <h1 class="display-4"><strong>Marcador de reunião internacional</strong></h1>
+
+      <hr class="my-4">
+
+      <div class="row">
+
+        <div class="col-lg-4">
+          <p>Melhor data para reunião</p>
+          <div class="form-group row">
+             <input  type="date" class="form-control" value="dd-MM-yyyy" id="date" nome="date" >
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <p>Sua cidade</p>
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="digite um local" name="locationA" id="locationA" >
+          </div>
+        </div>
+
+        <div class="col-lg-4">
+          <p>Cidade da outra pessoa</p>
+          <div class="input-group">
+            <input type="text" class="form-control"  placeholder="digite um local" name="locationB" id="locationB">
+          </div>
+        </div>
+
+        <div id="result">
+          ----
+        </div>
+
+      </div>
+  </div>
+
+
+    <script type="text/javascript">
+      var myComponent = {
+        locationA: null,
+        locationB: null,
+        date: null,
+        update: function(prop, val) {
+          this[prop] = val;
+          this.render();
+        },
+        render: function(){
+          if(this.locationA && this.locationB) {
+            var bestTime = bestTimeForMeeting(this.locationA, this.locationB, this.date);
+            var elm = document.getElementById('result');
+            var result = "";
+            if(!bestTime) {
+              result = "There is no best Time";
+            }else {
+              result = " Melhor horário é: " + bestTime [0] [0] + "hs " + " em " + bestTime [0] [1] ;
+              result += " e " + bestTime[1][0] + "hs " + " em " + bestTime[1][1];
+              result += " para a data : " + date.value;
+            }
+            elm.innerHTML = result;
+          }
+        }
+      }
+
+
+     // Primeiramente defini-se o nome da função que identifica a aplicação;
+     // depois a Lista de argumentos da função entre parênteses;
+     // e em seguida declara-se as variáveis em JavaScript que definem a função, entre chaves.
+
+     function bestTimeForMeeting(locationA, locationB, date) {
+
+      // Inicia-se a aplicação buscando saber em qual das duas localidades seria mais cedo em um dado momento,
+      // pela diferença, para haver-se um ponto de referência sólido para esta lógica do busness iniciar-se.
+      // Defini-se aqui as variáveis em questão.
+
+      var earlyPlace;
+      var latePlace;
+
+      // Aqui aplica-se uma função lógica algébrica simples de subtração dos argumentos apresentados,
+      // justamente pora saber em qual das duas localidades seria "mais cedo". Assim pode-se proceder
+      // o resultado de qual seria a hora 'cruzada' mais cedo dentro do horário comercial de 9am - 18pm
+      // em ambas e considerando o fuso horário
+
+      var timezoneDifference = Math.abs(locationA.timezone - locationB.timezone);
+
+      // Aqui identificamos que com mais de 8 horas de fuso horário não haveria uma hora comum compresa dentro do espectro
+      // do horário comercial, como condição de cruzamento entre ambas localidades buscadas.
+
+      if(timezoneDifference > 8) return false;
+
+      // Aqui aplica-se um "operador ternário", por ser a única função .js que permite uma operação
+      // com três elementos. Usando os parâmetros definidos como refatoração ou alternativa a operação 'if', apresentada abaixo comentada.
+
+      var earlyPlace = locationA.timezone < locationB.timezone ? locationA : locationB;
+      var latePlace = locationA.timezone < locationB.timezone ? locationB : locationA;
+
+      // if(locationA.timezone < locationB.timezone) {
+      //   earlyPlace = locationA;
+      //   latePlace = locationB;
+      // }
+      // else {
+      //   earlyPlace = locationB;
+      //   latePlace = locationA;
+      // }
+
+      // Neste momento itera-se um array de dados e definimos o horário comercial válido para cada localidade em questão, e segue.
+      // Por consequência verificamos qual seria o horário comercial para cada localidade, e se converge alguma hora em comun dentro deste horário.
+
+      for(var hourInEarlyPlace = 9; hourInEarlyPlace <= 18; hourInEarlyPlace++ ) {
+        var timeInLatePlace = hourInEarlyPlace + timezoneDifference;
+        if(timeInLatePlace <= 18)
+        return [[hourInEarlyPlace, earlyPlace.name], [timeInLatePlace, latePlace.name]];
+      }
+      return false;
+      }
+
+     // Retornamos a hora mais cedo, a variável como função 'bestTimeForMeeting' para o 'melhor horário para o encontro', comparando o
+     // 'horário comercial' destas duas localidades e seus respectivos fuso horários, mostrando se há ou não esta possibilidade
+     //diante do timezone de cada uma das duas comparadas.
+
+     var bestTime = bestTimeForMeeting({name: "BH",timezone: -3}, {name: "Bangkok",timezone: 7}, '2017-05-02');
+     if (bestTime === false) {
+       console.log("There is no best time for meeting");
+     }
+     else {
+       console.log("Best time for meeting is: "+ bestTime);
+     }
+
+
+    </script>
+
+    <script type="text/javascript">
+
+   // Começamos definindo a chave da API e em seguida nomeando a função para o tratamento das infos de latitude e longitude
+   // como argumento. Tratamos matemáticamente os dados retorndos pela função timestamp, para facilitar visualização
+   // e inicializa-se uma searchbox geolocalizada, usando Google Places Autocomplete. As usuários
+   // poderão realizar a buscas geográficas, aqui no caso sem a visualização de tais marcações no mapa. A searchbox retornará uma
+   // lista contendo uma variedade de localidades e predizendo os termos buscados, facilitando o preenchimento dos campos necessários.
+
+   //Nesta aplicação se faz necessário o uso da Biblioteca Places do Google. Incluiu-se o parâmetro libraries=places
+   // para o carregamento da API ex: <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places"> além
+   // da inicialização da API Timezone Google. Definida esta na função abaixo e concatenada como url a ser enviada via http
+   //para o endpoint da variável url via jquery.getJSON, mostrando mais infos sobre a timezone referida.
+
+
+    var TIMEZONE_API = "AIzaSyBdKcOOJljK0GCbqaM5EzsSkJorY7ZLsFo";
+    function getTimezoneInformationFromAPI(lat, lng, callback) {
+      var currentTimestamp = Math.floor(+(new Date())/1000);
+      var url = "https://maps.googleapis.com/maps/api/timezone/json?timestamp="+currentTimestamp+"&location="+lat+","+lng+"&key="+TIMEZONE_API;
+      $.getJSON(url, function(timezoneInformation){
+        callback(timezoneInformation);
+      })
+    }
+
+    // Neste momento definimos o nome da aplicação e declaramos o argumento em questão no caso input.
+    // Cria-se a searchBox e associa a mesma ào elemento da UI.
+    // Captura o evento disparado quando o usuário seleciona uma localidade e recupera mais infos sobre.
+    // Retorne erro caso não haja nada sendo buscado ou que não encontre conformidade com um nome de localidade existente.
+
+    function initAutocompleteFor(input) {
+
+      var searchBox = new google.maps.places.SearchBox(input);
+
+      searchBox.addListener('places_changed', function() {
+
+        var places = searchBox.getPlaces();
+        if (places.length == 0) {
+          console.log('no places available');
+          return;
+        }
+        var place = places[0];
+        console.log(place);
+        getTimezoneInformationFromAPI(place.geometry.location.lat(), place.geometry.location.lng(), function(timezoneInformation) {
+          var placeWithTimezone = {
+            name: place.name,
+            timezone: Math.floor(timezoneInformation.rawOffset/60/60) // Confira isso, só fiz isso para mostrar como exemplo
+          };
+          console.log(input.name + " is " + placeWithTimezone);
+          console.log(placeWithTimezone);
+          myComponent.update(input.name, placeWithTimezone);
+        })
+
+      });
+
+    }
+
+     // Aqui inicializa-se como callback a função mapsAPILoaded na manipulação dos eventos DOM com a interface de input UI.
+
+    function mapsAPILoaded() {
+      initAutocompleteFor(document.getElementById('locationA'));
+      initAutocompleteFor(document.getElementById('locationB'));
+    }
+    </script>
+         <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAPbTIwcRFCxFIALB4ayDB96lEA6wpJK-U&libraries=places&callback=mapsAPILoaded"
+         async defer></script>
+         <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+         <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+  </body>
+</html>
